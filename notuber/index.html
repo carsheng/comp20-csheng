@@ -6,10 +6,7 @@
         <link rel="stylesheet" href="map.css" />
 
         <meta charset="utf-8">
-    </head>
-  <body onload = "init()">
-    <div id="map"></div>
-      <script src="http://maps.google.com/maps/api/js?key=AIzaSyB_KqNp8ZNTxst1EAAr4tSopPyEDYdZF5s&sensor=true"></script>
+          <script src="http://maps.google.com/maps/api/js?key=AIzaSyB_KqNp8ZNTxst1EAAr4tSopPyEDYdZF5s&sensor=true"></script>
     <script>
         var myLat = 0;
         var myLng = 0;
@@ -18,7 +15,7 @@
 
         // SET UP MAP
         var myOptions = {
-            zoom: 8, // The larger the zoom number, the bigger the zoom
+            zoom: 12, // The larger the zoom number, the bigger the zoom
             center: me,
             //mapTypeId: google.maps.MapTypeId.ROADMAP
         };
@@ -29,8 +26,37 @@
         function init() {
             console.log("init function")
             map = new google.maps.Map(document.getElementById('map'), myOptions);
+            getMyLocation();
+           
+        }
 
-            var myIcon = "mymarker.png"
+        function getMyLocation() {
+            if (navigator.geolocation) { 
+                navigator.geolocation.getCurrentPosition(function(position){
+                        myLat = position.coords.latitude;
+                        myLng = position.coords.longitude;
+                        renderMap();
+                });
+            }
+            else {
+                alert("Geolocation is not supported by your web browser.  What a shame!");
+            }
+        }
+
+        function renderMap() {
+            me = new google.maps.LatLng(myLat, myLng);
+
+            map.panTo(me);
+
+            var myIcon = new google.maps.MarkerImage
+            (
+                "bluepin.png",
+                null,
+                null,
+                null,
+                new google.maps.Size(30, 40)
+            );
+                
             // Create a marker
             var marker = new google.maps.Marker({
               position: me,
@@ -39,24 +65,11 @@
             });
 
             marker.setMap(map);
-
-            if (navigator.geolocation) { 
-                navigator.geolocation.getCurrentPosition(FIGURESHITOUT);
-            }
-            else {
-                alert("Geolocation is not supported by your web browser.  What a shame!");
-            }
+            FIGURESHITOUT();
         }
 
-        function FIGURESHITOUT(position){
+        function FIGURESHITOUT(){
             console.log("figureshitout function")
-            // GET MY COORDINATES
-            myLat = position.coords.latitude;
-            myLng = position.coords.longitude;
-
-            // PAN TO ME
-            me = new google.maps.LatLng(myLat, myLng);
-            map.panTo(me);
 
             // CONCATENATE MY INFO
             var parameters = "username=pD0kGOax&lat=" + myLat + "&lng=" + myLng;
@@ -76,7 +89,7 @@
             console.log("parse car data")
             if (xhr.readyState == 4 && xhr.status == 200) {
                 elements = JSON.parse(xhr.responseText);
-                var test = elements[1].lat;
+                var test = elements.passengers[1].lat;
                 console.log(test);
                 
                 //console.log(elements);
@@ -84,40 +97,60 @@
                 for (i = 0; i < 54; i++) {
                     
                     //console.log("in loop")
-                    var xLat = elements[i]['lat'];
-                    var xLng = elements[i]['lng'];
+                    var xLat = elements.passengers[i]['lat'];
+                    var xLng = elements.passengers[i]['lng'];
 
                     var xLatLng = new google.maps.LatLng(xLat, xLng);
 
-                    var xUsername = elements[i]['username'];
+                    var xUsername = elements.passengers[i]['username'];
 
-                    if(xUsername = "pD0kGOax") { // it's me!
+                    var myUsername = "pD0kGOax";
+                    
+                  
+                        console.log("not me!");
+                        var passenger = new google.maps.MarkerImage
+                        (
+                            "passenger.png",
+                            null,
+                            null,
+                            null,
+                            new google.maps.Size(30, 40)
+                        );
+                        var marker = new google.maps.Marker({
+                            position: xLatLng,
+                            map: map,
+                            icon: passenger,
+                            title: xUsername,
+                        });
+                        marker.setMap(map);
+                    }
+                }
+                
+            }
+        
+/*      
+   if(xUsername == myUsername) { // it's me!
                         console.log("found me");
-                        var myIcon = "mymarker.png"
+                        var myIcon = new google.maps.MarkerImage
+                        (
+                            "mymarker.png",
+                            null,
+                            null,
+                            null,
+                            new google.maps.Size(30, 40)
+                        );
                         var marker = new google.maps.Marker({
                            position: me,
                            icon: myIcon,
                         });
-                        marker.setMap(map);
-                    }
-                    // not me!
-                    var vehicle = "vehicle.png"
-                    var marker = new google.maps.Marker({
-                        position: aLatLng,
-                        map: map,
-                        icon: vehicle,
-                        title: xUsername + ". Distance from me: " + distanceFromMe(aLat, aLng) + " miles."
-                    });
-                    marker.setMap(map);
-                }
-                
-            }
-        }
-      
-        
+                        marker.setMap(map);     
 
-
+*/
     </script>
+    </head>
+  <body onload = "init()">
+    <div id="map"></div>
+    
 
 </body>
 </html>
