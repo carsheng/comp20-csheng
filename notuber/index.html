@@ -6,44 +6,51 @@
         <link rel="stylesheet" href="map.css" />
 
         <meta charset="utf-8">
-          <script src="http://maps.google.com/maps/api/js?key=AIzaSyB_KqNp8ZNTxst1EAAr4tSopPyEDYdZF5s&libraries=geometry"></script>
     <script>
-        var myLat = 0;
-        var myLng = 0;
-     
-        var me = new google.maps.LatLng(myLat, myLng);
-
-        var infowindow = new google.maps.InfoWindow();
-        // SET UP MAP
-        var myOptions = {
-            zoom: 15, // The larger the zoom number, the bigger the zoom
-            center: me,
-            //mapTypeId: google.maps.MapTypeId.ROADMAP
-        };
-        var map;
-
-  
         function init() {
-            console.log("init function")
+            console.log("starting init");
+            var myLat = 0;
+            var myLng = 0;
+         
+            var me = new google.maps.LatLng(myLat, myLng);
+
+            var infowindow = new google.maps.InfoWindow();
+            // SET UP MAP
+            var myOptions = {
+                zoom: 2, // The larger the zoom number, the bigger the zoom
+                center: me,
+                //mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
+            var map;
+
+            initMap();
+
+        function initMap() {
             map = new google.maps.Map(document.getElementById('map'), myOptions);
             getMyLocation();
            
         }
 
         function getMyLocation() {
+            console.log("starting getMyLocation");
             if (navigator.geolocation) { 
+                console.log("getting geolocation");
                 navigator.geolocation.getCurrentPosition(function(position){
-                        myLat = position.coords.latitude;
-                        myLng = position.coords.longitude;
-                        renderMap();
+                    console.log("got geolocation");
+                    myLat = position.coords.latitude;
+                    myLng = position.coords.longitude;
+                    map.setZoom(15);
+                    renderMap();
                 });
             }
             else {
                 alert("Geolocation is not supported by your web browser.  What a shame!");
             }
+            console.log("ending getMyLocation");
         }
 
         function renderMap() {
+            console.log("starting renderMap");
             me = new google.maps.LatLng(myLat, myLng);
 
             map.panTo(me);
@@ -54,7 +61,7 @@
                 null,
                 null,
                 null,
-                new google.maps.Size(30, 40)
+                new google.maps.Size(30, 30)
             );
                 
             // Create a marker
@@ -68,10 +75,11 @@
 
             
             google.maps.event.addListener(marker, 'click', function() {
-                    infowindow.setContent(marker.title);
-                    infowindow.open(map, marker);
+                infowindow.setContent(marker.title);
+                infowindow.open(map, marker);
             });
             getData();
+            console.log("ending renderMap");
         }
 
         function getData(){
@@ -94,7 +102,7 @@
         function parseCarData() {
             console.log("parse car data")
             if (xhr.readyState == 4 && xhr.status == 200) {
-                elements =  [];
+                elements = [];
                 elements = JSON.parse(xhr.responseText);
                 
                 console.log(elements);
@@ -150,7 +158,7 @@
                             null,
                             null,
                             null,
-                            new google.maps.Size(30, 40)
+                            new google.maps.Size(50, 20)
                         );
                         var marker = new google.maps.Marker({
                             position: xLatLng,
@@ -168,47 +176,13 @@
                 }
             }    
         }
-
-        
-        
-/*      
-    SCRATCHWORK
-   if(xUsername == myUsername) { // it's me!
-                        console.log("found me");
-                        var myIcon = new google.maps.MarkerImage
-                        (
-                            "mymarker.png",
-                            null,
-                            null,
-                            null,
-                            new google.maps.Size(30, 40)
-                        );
-                        var marker = new google.maps.Marker({
-                           position: me,
-                           icon: myIcon,
-                        });
-                        marker.setMap(map); 
-
-
-
-                        var xLat = type[i]['lat'];
-                        var xLng = elements.vehicles[i]['lng'];
-
-                        var xLatLng = new google.maps.LatLng(xLat, xLng);
-
-                        var xUsername = elements.vehicles[i]['username'];
-                        console.log(xUsername);
-
-                        var meterDist = google.maps.geometry.spherical.computeDistanceBetween(me, xLatLng);
-                        var mileDist = meterDist/1609;
     
-
-*/
+        
     </script>
     </head>
-  <body onload = "init()">
+  <body>
     <div id="map"></div>
     
-
+    <script src="http://maps.google.com/maps/api/js?key=AIzaSyB_KqNp8ZNTxst1EAAr4tSopPyEDYdZF5s&libraries=geometry&callback=init" async defer></script>
 </body>
 </html>
