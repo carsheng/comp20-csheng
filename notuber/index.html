@@ -8,7 +8,6 @@
         <meta charset="utf-8">
     <script>
         function init() {
-            console.log("starting init");
             var myLat = 0;
             var myLng = 0;
          
@@ -17,26 +16,21 @@
             var infowindow = new google.maps.InfoWindow();
             // SET UP MAP
             var myOptions = {
-                zoom: 2, // The larger the zoom number, the bigger the zoom
+                zoom: 2, 
                 center: me,
-                //mapTypeId: google.maps.MapTypeId.ROADMAP
             };
-            var map;
 
+            var map;
             initMap();
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), myOptions);
-            getMyLocation();
-           
+            getMyLocation();  
         }
 
         function getMyLocation() {
-            console.log("starting getMyLocation");
             if (navigator.geolocation) { 
-                console.log("getting geolocation");
                 navigator.geolocation.getCurrentPosition(function(position){
-                    console.log("got geolocation");
                     myLat = position.coords.latitude;
                     myLng = position.coords.longitude;
                     map.setZoom(15);
@@ -46,11 +40,9 @@
             else {
                 alert("Geolocation is not supported by your web browser.  What a shame!");
             }
-            console.log("ending getMyLocation");
         }
 
         function renderMap() {
-            console.log("starting renderMap");
             me = new google.maps.LatLng(myLat, myLng);
 
             map.panTo(me);
@@ -79,104 +71,83 @@
                 infowindow.open(map, marker);
             });
             getData();
-            console.log("ending renderMap");
+            
         }
 
         function getData(){
-            console.log("figureshitout function")
-
-            // CONCATENATE MY INFO
             var parameters = "username=pD0kGOax&lat=" + myLat + "&lng=" + myLng;
-
-            // START XML REQUEST
+           
             xhr = new XMLHttpRequest();
 
             xhr.open("POST", "https://defense-in-derpth.herokuapp.com/submit", true);
             xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             
-            xhr.onreadystatechange = parseCarData;
+            xhr.onreadystatechange = parseData;
       
             xhr.send(parameters);
         }
 
-        function parseCarData() {
-            console.log("parse car data")
+        function parseData() {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 elements = [];
                 elements = JSON.parse(xhr.responseText);
                 
-                console.log(elements);
-                
-                var type;
+                var users;
+                var userIcon;
 
                 if(elements.passengers) {
-                    type = elements.passengers;
-                }
-                else{
-                    type = elements.vehicles;
+                    users = elements.passengers;
+                    userIcon = new google.maps.MarkerImage
+                    (
+                        "passenger.png",
+                        null,
+                        null,
+                        null,
+                        new google.maps.Size(30, 40)
+                    );
+                } else{
+                    users = elements.vehicles;
+                    userIcon = new google.maps.MarkerImage
+                    (
+                        "black_car.png",
+                        null,
+                        null,
+                        null,
+                        new google.maps.Size(50, 20)
+                    );
                 }
 
-                for (i = 0; i < type.length; i++) {
+                for (i = 0; i < users.length; i++) {
                     // get all data + info
-                    var xLat = type[i]['lat'];
-                    var xLng = type[i]['lng'];
+                    var xLat = users[i]['lat'];
+                    var xLng = users[i]['lng'];
 
                     var xLatLng = new google.maps.LatLng(xLat, xLng);
 
-                    var xUsername = type[i]['username'];
-                    console.log(xUsername);
+                    var xUsername = users[i]['username'];
 
                     var meterDist = google.maps.geometry.spherical.computeDistanceBetween(me, xLatLng);
                     var mileDist = meterDist/1609;
 
-                    // place correct markers on map
-                    if (elements.passengers) { 
-                        var passenger = new google.maps.MarkerImage
-                        (
-                            "passenger.png",
-                            null,
-                            null,
-                            null,
-                            new google.maps.Size(30, 40)
-                        );
-                        var marker = new google.maps.Marker({
+                    var marker;
+                    
+                    marker = new google.maps.Marker({
                             position: xLatLng,
                             map: map,
-                            icon: passenger,
+                            icon: userIcon,
                             title: xUsername + " is " + mileDist + " miles away.",
-                        });
-
-                        google.maps.event.addListener(marker, 'click', function() {
+                    });
+                    
+                   
+                    google.maps.event.addListener(marker, 'click', function() {
                             infowindow.setContent(this.title);
                             infowindow.open(map, this);
                         });
-                        marker.setMap(map);
-                    } else {
-                        var vehicle = new google.maps.MarkerImage
-                        (
-                            "black_car.png",
-                            null,
-                            null,
-                            null,
-                            new google.maps.Size(50, 20)
-                        );
-                        var marker = new google.maps.Marker({
-                            position: xLatLng,
-                            map: map,
-                            icon: vehicle,
-                            title: xUsername + " is " + mileDist + " miles away.",
-                        });
-
-                        google.maps.event.addListener(marker, 'click', function() {
-                            infowindow.setContent(this.title);
-                            infowindow.open(map, this);
-                        });
-                        marker.setMap(map);
-                    }
+                    marker.setMap(map);
                 }
             }    
         }
-    
+    }
         
     </script>
     </head>
