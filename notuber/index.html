@@ -21,7 +21,6 @@
             //mapTypeId: google.maps.MapTypeId.ROADMAP
         };
         var map;
-        //var infowindow = new google.maps.InfoWindow();
 
   
         function init() {
@@ -51,7 +50,7 @@
 
             var myIcon = new google.maps.MarkerImage
             (
-                "mymarker.png",
+                "target.png",
                 null,
                 null,
                 null,
@@ -72,10 +71,10 @@
                     infowindow.setContent(marker.title);
                     infowindow.open(map, marker);
             });
-            FIGURESHITOUT();
+            getData();
         }
 
-        function FIGURESHITOUT(){
+        function getData(){
             console.log("figureshitout function")
 
             // CONCATENATE MY INFO
@@ -101,6 +100,7 @@
                 console.log(elements);
                 
                 var type;
+
                 if(elements.passengers) {
                     type = elements.passengers;
                 }
@@ -109,6 +109,7 @@
                 }
 
                 for (i = 0; i < type.length; i++) {
+                    // get all data + info
                     var xLat = type[i]['lat'];
                     var xLng = type[i]['lng'];
 
@@ -119,7 +120,8 @@
 
                     var meterDist = google.maps.geometry.spherical.computeDistanceBetween(me, xLatLng);
                     var mileDist = meterDist/1609;
-                    //console.log("in loop")
+
+                    // place correct markers on map
                     if (elements.passengers) { 
                         var passenger = new google.maps.MarkerImage
                         (
@@ -133,7 +135,7 @@
                             position: xLatLng,
                             map: map,
                             icon: passenger,
-                            title: xUsername + " is " + mileDist + " away from me.",
+                            title: xUsername + " is " + mileDist + " miles away.",
                         });
 
                         google.maps.event.addListener(marker, 'click', function() {
@@ -154,7 +156,7 @@
                             position: xLatLng,
                             map: map,
                             icon: vehicle,
-                            title: xUsername + " is " + mileDist + " away from me.",
+                            title: xUsername + " is " + mileDist + " miles away.",
                         });
 
                         google.maps.event.addListener(marker, 'click', function() {
@@ -167,11 +169,10 @@
             }    
         }
 
-        function calcDistance() {
-
-        }
+        
         
 /*      
+    SCRATCHWORK
    if(xUsername == myUsername) { // it's me!
                         console.log("found me");
                         var myIcon = new google.maps.MarkerImage
