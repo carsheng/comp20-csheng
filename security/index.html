@@ -9,6 +9,7 @@
 </head>
 
 <body>
+<h2>NotUber Security Assessment</h2>
 <!--description of the product and what you were hired to do-->
 <h3>Introduction</h3>
 <p>Please note: The code of the original partner assigned to returned Application Errors. For this report, I analyzed Mings Chow's code</p>
@@ -22,14 +23,14 @@ The main issues found revolve around the client failing to properly check user i
 
 <!---->
 <h3>Issues Found</h3>
-<p>Issue: CSS(Cross Site Scripting) Input Validation</p>
+<p>Issue: XSS(Cross Site Scripting) Input Validation</p>
 <ul>
 <li>Attacker can easily deliver malicious Javascript that affects other users.</li>
 <li>Location: At the root/home page. Focus: /submit POST API</li>
 <li>Severity: High</li>
 <li>Description: When sending data (username, lat, lng) about a user using the POST method (/submit) through curl, client does not check for unwanted characters, and so stores malicious content in mongoDB databse, which can be delivered to other users (see Output Validation Issue below). Sample picture below: script sent in POST parameters that will cause alert box to pop up for any user that accesses home page. </li>
 <li><code>curl --data "username=<script></script>&lat=30&lng=30" insertnameofsite/submit</code><br/><img src="input%20validation.png" alt="input validation image" width=700px height=100px></li>
-<li>Resolution: This can be resolved by properly sanitizing POST parameters (user input). To prevent malicious scripts from executing, remove special characters from user input (ex: >, /) </li>
+<li>Resolution: This can be resolved by properly sanitizing POST parameters (user input). To prevent malicious scripts from executing, remove special characters from user input. So for example: <br/><img src="escapehtml.png" alt="escape HTML image" width=100px height=60px></li>
 </ul>
     
 <p>Issue: Output Validation</p>
@@ -49,7 +50,7 @@ The main issues found revolve around the client failing to properly check user i
 <li>Severity: High</li>
 <li>Description: /vehicle.json GET API takes in query string parameter to find vehicle potentially associated with inputted username. Does not check if query string parameter is an object or not, so attacker can query mongoDB database and access data of other users in database.  Server will only return one vehicle to mongodb query, but attacker was still able to access info of users they did not ask for. </li>
 <li>Sample picture below: mongodb query of username in database "not equal" to empty string: "". URL: <code>http://localhost:3000/vehicle.json?username[$ne]=""</code> User info of vehicle JANET (which was first vehicle inserted into vehicle collection by tester) is returned. <br/>
-<img src="db%20injection.png" alt="output validation image" width=700px height=100px></li>
+<img src="db%20injection.png" alt="db injection image" width=700px height=100px></li>
 <li>Resolution: Since mongoDB queries are objects, this can be resolved by properly checking whether the GET parameter is a string.  
 <code><pre>
 if (typeof request.query.username !== 'string') {
