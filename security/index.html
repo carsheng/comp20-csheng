@@ -3,12 +3,67 @@
 <html>
 
 <head>
-  <title>NotUber Security Assessment</title>
-  <link rel="stylesheet" href="style.css"/>
-  <meta charset="utf-8" />
+<title>NotUber Security Assessment</title>
+<link rel="stylesheet" href="style.css"/>
+<meta charset="utf-8" />
 </head>
 
 <body>
-  
+<!--description of the product and what you were hired to do-->
+<h3>Introduction</h3>
+<p>Please note: The code of the original partner assigned to returned Application Errors. For this report, I analyzed Mings Chow's code</p>
+<p>Client's product is a web application and database that retrieves and stores a user's username, latitude, and longitude (and denotes whether they are a vehicle or passenger). The location inputted by users is then shown on a google map, and users can also specifically look for users by username, and see all passengers on the site. I was hired to attack the application and find as many security and privacy problems as possible, and also to offer possible solutions to those problems. </p>
+<!--methodology pen testing the application, including the tools that you used-->
+<h3>Methodology</h3>
+I began by inspecting the website without looking at the source code, then used curl to test database security.
+<!--overview of all the security and privacy issues you identified using lay language.-->
+<h3>Abstract of Findings</h3>
+The main issues found revolve around the client failing to properly check user input. Attackers can easily deliver malicious content to other users by inputting Javascript scripts through the username, which is then stored in the database and subsequently delivered to all users. Attackers can also very easily gain access into the user info database, and can easily obtain other user's information. 
+
+<!---->
+<h3>Issues Found</h3>
+<p>Issue: CSS(Cross Site Scripting) Input Validation</p>
+<ul>
+<li>Attacker can easily deliver malicious Javascript that affects other users.</li>
+<li>Location: At the root/home page. Focus: /submit POST API</li>
+<li>Severity: High</li>
+<li>Description: When sending data (username, lat, lng) about a user using the POST method (/submit) through curl, client does not check for unwanted characters, and so stores malicious content in mongoDB databse, which can be delivered to other users (see Output Validation Issue below). Sample picture below: script sent in POST parameters that will cause alert box to pop up for any user that accesses home page. </li>
+<li><code>curl --data "username=<script></script>&lat=30&lng=30" insertnameofsite/submit</code><br/><img src="input%20validation.png" alt="input validation image" width=700px height=100px></li>
+<li>Resolution: This can be resolved by properly sanitizing POST parameters (user input). To prevent malicious scripts from executing, remove special characters from user input (ex: >, /) </li>
+</ul>
+    
+<p>Issue: Output Validation</p>
+<ul>
+<li>Malicious code already present in database is served to client through GET request</li>
+<li>Location: At root/home page. Focus: /GET API  </li>
+<li>Severity: Medium</li>
+<li>Description: When contents of passenger database is outputted, there is no output validation. This issue is similar to the above issue found with Input Validation when taking in potentially malicious user input. However, because /GET API does not check for unwanted characters, it delivers malicious content to users from the mongoDB database. This issue is of a lower severity than input validation as fixing the first issue will most likely reduce the likelihood of malicious content being stored in the databse in the first place. However, if attacker is able to gain access an manipulate database data, then output validation is very important. Sample picture below: script retrieved from mongoDB database that causes alert box to pop up for any user that accesses home page.</li>
+<li><img src="output%20validation.png" alt="output validation image" width=700px height=500px></li>
+<li>Resolution: This can be resolved by properly sanitizing GET parameters before outputting. Similar solution as to above.</li>
+</ul>
+
+<p>Issue: Database Injection (Privacy Issues)</p>
+<ul>
+<li>Attacker can view other users data in MongoDB database</li>
+<li>Location: /vehicle.json GET page</li>
+<li>Severity: High</li>
+<li>Description: /vehicle.json GET API takes in query string parameter to find vehicle potentially associated with inputted username. Does not check if query string parameter is an object or not, so attacker can query mongoDB database and access data of other users in database.  Server will only return one vehicle to mongodb query, but attacker was still able to access info of users they did not ask for. </li>
+<li>Sample picture below: mongodb query of username in database "not equal" to empty string: "". URL: <code>http://localhost:3000/vehicle.json?username[$ne]=""</code> User info of vehicle JANET (which was first vehicle inserted into vehicle collection by tester) is returned. <br/>
+<img src="db%20injection.png" alt="output validation image" width=700px height=100px></li>
+<li>Resolution: Since mongoDB queries are objects, this can be resolved by properly checking whether the GET parameter is a string.  
+<code><pre>
+if (typeof request.query.username !== 'string') {
+    //SEND ERROR
+    return;
+} 
+</pre></code></li>
+</ul>
+<!--future considerations and recommendations with costs-->
+<h3>Conclusion</h3>
+<p>There are currently a reasonable amount of security and privacy flaws in client's application, most of which stem from incorrectly trusting user input, and potentially putting users' private info at risk. However, most of this can be resolved reasonably easily by inserting a couple of lines of code (written above). In the future, client should be sure to check all user input, and also put in extra precautions to protect database from attackers.  </p>
+<h3>References</h3>
+    <p><a href="https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet">XSS Cheat Sheet</a></p>
+    <p><a href="https://docs.mongodb.com/manual/reference/mongo-shell/">Mongo Shell Commands</a></p>
+    <p><a href="http://blog.websecurify.com/2014/08/hacking-nodejs-and-mongodb.html">Hacking MongoDB and Node.js </a></p>
 </body>
 </html>
